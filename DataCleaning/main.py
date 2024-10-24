@@ -42,3 +42,13 @@ df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
 # Filling missing values in the categorical columns with 'unknown' (could also use removing)
 categorical_cols = df.select_dtypes(include=['object']).columns
 df[categorical_cols] = df[categorical_cols].fillna('unknown')
+
+# Removing outliers (houses with extreme prices)
+Q1 = df['price'].quantile(0.25)
+Q3 = df['price'].quantile(0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+df = df[(df['price'] >= lower_bound) & (df['price'] <= upper_bound)]
+
+
