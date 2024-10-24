@@ -59,7 +59,7 @@ print("Columns datatypes:\n", df.dtypes)
 
 print(df)
 
-# Sending the cleaned data to the database first
+# Sending the cleaned data to the database
 insert_collection('house_prices_data_cleaned', df)
 
 
