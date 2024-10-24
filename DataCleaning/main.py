@@ -54,4 +54,9 @@ df = df[(df['price'] >= lower_bound) & (df['price'] <= upper_bound)]
 # Removing duplicates
 df = df.drop_duplicates()
 
+# Printing every column's datatype to doublecheck their correctness
+print("Columns datatypes:\n", df.dtypes)
+
+print(df)
+
 
