@@ -51,4 +51,7 @@ lower_bound = Q1 - 1.5 * IQR
 upper_bound = Q3 + 1.5 * IQR
 df = df[(df['price'] >= lower_bound) & (df['price'] <= upper_bound)]
 
+# Removing duplicates
+df = df.drop_duplicates()
+
 
