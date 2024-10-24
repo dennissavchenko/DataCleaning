@@ -22,3 +22,6 @@ def insert_collection(collection_name, data):
 
 # Sending the uncleaned data to the database first
 insert_collection('house_prices_data_raw', df)
+
+# Deleting 'country' column because its every value is 'USA' (not useful)
+df = df.drop(columns=['country'])
