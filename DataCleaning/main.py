@@ -1,12 +1,13 @@
 import pandas as pd
 from mongoDB import MongoDB
+from data_standardization import *
 
 df = pd.read_csv('usa_house_prices.csv')
 
-db = MongoDB('pro')
+#db = MongoDB('pro')
 
 # Sending the uncleaned data to the database first
-db.insert_collection('house_prices_data_raw', df)
+#db.insert_collection('house_prices_data_raw', df)
 
 # Deleting 'country' column because its every value is 'USA' (not useful)
 df = df.drop(columns=['country'])
@@ -40,9 +41,13 @@ df = df[(df['price'] >= lower_bound) & (df['price'] <= upper_bound)]
 df = df.drop_duplicates()
 
 # Printing every column's datatype to doublecheck their correctness
-print("Columns datatypes:\n", df.dtypes)
-
-print(df)
+#print("Columns datatypes:\n", df.dtypes)
 
 # Sending the cleaned data to the database
-db.insert_collection('house_prices_data_cleaned', df)
+#db.insert_collection('house_prices_data_cleaned', df)
+
+df = normalize_numerical_data_z_score(df,['price', 'bedrooms', 'bathrooms', 'sqft_living', 'floors', 'sqft_lot', 'sqft_above', 'yr_built'])
+pd.set_option('display.max_columns', None)
+print(df)
+
+
