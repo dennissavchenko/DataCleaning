@@ -20,9 +20,8 @@ def standardize_categorical_data(df, columns):
 
 
 # Converts date columns into given datatime format
-def format_date_columns(df, date_columns, date_format='%Y-%m-%d'):
+def format_date_columns(df, date_columns):
     for column in date_columns:
         # In case of invalid date format value, it will be replaced by NaT
         df[column] = pd.to_datetime(df[column], errors='coerce')
-        df[column] = df[column].dt.strftime(date_format)
     return df

@@ -1,4 +1,3 @@
-import pandas as pd
 from mongoDB import MongoDB
 from data_standardization import *
 from data_cleaning import *
@@ -6,14 +5,16 @@ from data_cleaning import *
 try:
     df = pd.read_csv('usa_house_prices.csv')
 except FileNotFoundError:
+    df = pd.DataFrame()
     print("Error: The file 'usa_house_prices.csv' was not found.")
 except Exception as e:
+    df = pd.DataFrame()
     print(f"An unexpected error occurred: {e}")
 
-#db = MongoDB('pro')
+db = MongoDB('pro')
 
 # Sending the uncleaned data to the database first
-#db.insert_collection('house_prices_data_raw', df)
+db.insert_collection('house_prices_data_raw', df)
 
 # Deleting 'country' column because its every value is 'USA' (not useful)
 df = delete_columns(df, ['country', 'street'])
@@ -42,15 +43,15 @@ df = remove_outliers_iqr(df, ['price'])
 df = df.drop_duplicates()
 
 # Printing every column's datatype to doublecheck their correctness
-#print("Columns datatypes:\n", df.dtypes)
+print("Columns datatypes:\n", df.dtypes)
 
 # Sending the cleaned data to the database
-#db.insert_collection('house_prices_data_cleaned', df)
+db.insert_collection('house_prices_data_processed', df)
 
-df = normalize_numerical_data_z_score(df,['price', 'bedrooms', 'bathrooms', 'sqft_living', 'floors', 'sqft_lot', 'sqft_above', 'yr_built', 'sqft_basement', 'yr_renovated'])
-df, label_encoders = standardize_categorical_data(df, ['city'])
-pd.set_option('display.max_columns', None)
+numerical_cols = ['price', 'bedrooms', 'bathrooms', 'sqft_living', 'floors', 'sqft_lot', 'sqft_above', 'yr_built', 'sqft_basement', 'yr_renovated']
+df = normalize_numerical_data_z_score(df, numerical_cols)
+df, label_encoders = standardize_categorical_data(df, ['city', 'statezip'])
+
+db.reset_collection_and_insert('house_prices_data_processed', df)
 
 print(df)
-
-
