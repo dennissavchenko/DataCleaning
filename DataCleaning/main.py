@@ -3,7 +3,12 @@ from mongoDB import MongoDB
 from data_standardization import *
 from data_cleaning import *
 
-df = pd.read_csv('usa_house_prices.csv')
+try:
+    df = pd.read_csv('usa_house_prices.csv')
+except FileNotFoundError:
+    print("Error: The file 'usa_house_prices.csv' was not found.")
+except Exception as e:
+    print(f"An unexpected error occurred: {e}")
 
 #db = MongoDB('pro')
 
