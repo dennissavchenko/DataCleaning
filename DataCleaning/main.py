@@ -1,6 +1,7 @@
 import pandas as pd
 from mongoDB import MongoDB
 from data_standardization import *
+from data_cleaning import *
 
 df = pd.read_csv('usa_house_prices.csv')
 
@@ -10,32 +11,27 @@ df = pd.read_csv('usa_house_prices.csv')
 #db.insert_collection('house_prices_data_raw', df)
 
 # Deleting 'country' column because its every value is 'USA' (not useful)
-df = df.drop(columns=['country', 'street'])
+df = delete_columns(df, ['country', 'street'])
 
 # Converting 'date' column into datatime ISO format (correcting datatype)
-format_date_columns(df, ['date'])
+df = format_date_columns(df, ['date'])
 
 # Filling missing values in the 'date' column with the next not null entry (as we see the data are sorted by date)
-df['date'] = df['date'].bfill()
+df = fill_missing_with_next_value(df, ['date'])
 
 # Deletes entries with missing house prices
-df.dropna(subset=['price'], inplace=True)
+df = drop_missing_entries(df, ['price'])
 
 # Filling missing values in the numerical columns with the mean
 numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
-df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
+df = fill_missing_with_mean(df, numeric_cols)
 
 # Filling missing values in the categorical columns with 'unknown' (could also use removing)
 categorical_cols = df.select_dtypes(include=['object']).columns
-df[categorical_cols] = df[categorical_cols].fillna('unknown')
+df = fill_missing_with_unknown(df, categorical_cols)
 
 # Removing outliers (houses with extreme prices)
-Q1 = df['price'].quantile(0.25)
-Q3 = df['price'].quantile(0.75)
-IQR = Q3 - Q1
-lower_bound = Q1 - 1.5 * IQR
-upper_bound = Q3 + 1.5 * IQR
-df = df[(df['price'] >= lower_bound) & (df['price'] <= upper_bound)]
+df = remove_outliers_iqr(df, ['price'])
 
 # Removing duplicates
 df = df.drop_duplicates()
