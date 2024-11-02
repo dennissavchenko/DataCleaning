@@ -12,8 +12,8 @@ df = pd.read_csv('usa_house_prices.csv')
 # Deleting 'country' column because its every value is 'USA' (not useful)
 df = df.drop(columns=['country', 'street'])
 
-# Converting 'date' column into datatime format (correcting datatype)
-df['date'] = pd.to_datetime(df['date'])
+# Converting 'date' column into datatime ISO format (correcting datatype)
+format_date_columns(df, ['date'])
 
 # Filling missing values in the 'date' column with the next not null entry (as we see the data are sorted by date)
 df['date'] = df['date'].bfill()
