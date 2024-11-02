@@ -10,7 +10,7 @@ df = pd.read_csv('usa_house_prices.csv')
 #db.insert_collection('house_prices_data_raw', df)
 
 # Deleting 'country' column because its every value is 'USA' (not useful)
-df = df.drop(columns=['country'])
+df = df.drop(columns=['country', 'street'])
 
 # Converting 'date' column into datatime format (correcting datatype)
 df['date'] = pd.to_datetime(df['date'])
@@ -46,8 +46,10 @@ df = df.drop_duplicates()
 # Sending the cleaned data to the database
 #db.insert_collection('house_prices_data_cleaned', df)
 
-df = normalize_numerical_data_z_score(df,['price', 'bedrooms', 'bathrooms', 'sqft_living', 'floors', 'sqft_lot', 'sqft_above', 'yr_built'])
+df = normalize_numerical_data_z_score(df,['price', 'bedrooms', 'bathrooms', 'sqft_living', 'floors', 'sqft_lot', 'sqft_above', 'yr_built', 'sqft_basement', 'yr_renovated'])
+df, label_encoders = standardize_categorical_data(df, ['city'])
 pd.set_option('display.max_columns', None)
+
 print(df)
 
 
