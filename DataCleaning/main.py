@@ -16,7 +16,8 @@ db = MongoDB('pro')
 # Sending the uncleaned data to the database first
 db.insert_collection('house_prices_data_raw', df)
 
-# Deleting 'country' column because its every value is 'USA' (not useful)
+# Deleting 'country' since all values are 'USA' (adds no useful information)
+# Deleting 'street' due to high cardinality (many unique values)
 df = delete_columns(df, ['country', 'street'])
 
 # Converting 'date' column into datatime ISO format (correcting datatype)
