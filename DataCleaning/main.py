@@ -1,55 +1,44 @@
-import pandas as pd
-import os
-from pymongo.mongo_client import MongoClient
+from mongoDB import MongoDB
+from data_standardization import *
+from data_cleaning import *
 
-df = pd.read_csv('usa_house_prices.csv')
+try:
+    df = pd.read_csv('usa_house_prices.csv')
+except FileNotFoundError:
+    df = pd.DataFrame()
+    print("Error: The file 'usa_house_prices.csv' was not found.")
+except Exception as e:
+    df = pd.DataFrame()
+    print(f"An unexpected error occurred: {e}")
 
-# Connecting to MongoDB
-client = MongoClient(os.getenv('MONGODB_URI'))
-db = client['pro']
-
-
-# Takes collection name and data frame and creates new dataset in the database using the data
-def insert_collection(collection_name, data):
-    collection = db[collection_name]
-    data_dict = data.to_dict(orient='records')
-    try:
-        collection.insert_many(data_dict)
-        print("Data successfully inserted into MongoDB!")
-    except Exception as e:
-        print(f"An error occurred while inserting data: {e}")
-
+db = MongoDB('pro')
 
 # Sending the uncleaned data to the database first
-insert_collection('house_prices_data_raw', df)
+db.insert_collection('house_prices_data_raw', df)
 
-# Deleting 'country' column because its every value is 'USA' (not useful)
-df = df.drop(columns=['country'])
+# Deleting 'country' since all values are 'USA' (adds no useful information)
+# Deleting 'street' due to high cardinality (many unique values)
+df = delete_columns(df, ['country', 'street'])
 
-# Converting 'date' column into datatime format (correcting datatype)
-df['date'] = pd.to_datetime(df['date'])
+# Converting 'date' column into datatime ISO format (correcting datatype)
+df = format_date_columns(df, ['date'])
 
 # Filling missing values in the 'date' column with the next not null entry (as we see the data are sorted by date)
-df['date'] = df['date'].bfill()
+df = fill_missing_with_next_value(df, ['date'])
 
 # Deletes entries with missing house prices
-df.dropna(subset=['price'], inplace=True)
+df = drop_missing_entries(df, ['price'])
 
 # Filling missing values in the numerical columns with the mean
 numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
-df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
+df = fill_missing_with_mean(df, numeric_cols)
 
 # Filling missing values in the categorical columns with 'unknown' (could also use removing)
 categorical_cols = df.select_dtypes(include=['object']).columns
-df[categorical_cols] = df[categorical_cols].fillna('unknown')
+df = fill_missing_with_unknown(df, categorical_cols)
 
 # Removing outliers (houses with extreme prices)
-Q1 = df['price'].quantile(0.25)
-Q3 = df['price'].quantile(0.75)
-IQR = Q3 - Q1
-lower_bound = Q1 - 1.5 * IQR
-upper_bound = Q3 + 1.5 * IQR
-df = df[(df['price'] >= lower_bound) & (df['price'] <= upper_bound)]
+df = remove_outliers_iqr(df, ['price'])
 
 # Removing duplicates
 df = df.drop_duplicates()
@@ -57,9 +46,13 @@ df = df.drop_duplicates()
 # Printing every column's datatype to doublecheck their correctness
 print("Columns datatypes:\n", df.dtypes)
 
-print(df)
-
 # Sending the cleaned data to the database
-insert_collection('house_prices_data_cleaned', df)
+db.insert_collection('house_prices_data_processed', df)
 
+numerical_cols = ['price', 'bedrooms', 'bathrooms', 'sqft_living', 'floors', 'sqft_lot', 'sqft_above', 'yr_built', 'sqft_basement', 'yr_renovated']
+df = normalize_numerical_data_z_score(df, numerical_cols)
+df, label_encoders = standardize_categorical_data(df, ['city', 'statezip'])
 
+db.reset_collection_and_insert('house_prices_data_processed', df)
+
+print(df)
