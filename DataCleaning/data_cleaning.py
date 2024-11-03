@@ -28,7 +28,7 @@ def fill_missing_with_unknown(df, columns):
     return df
 
 
-# Removes outliers from the specified columns of the using the IQR method.
+# Removes outliers from the specified columns using the IQR method.
 def remove_outliers_iqr(df, columns):
     for column in columns:
         q1 = df[column].quantile(0.25)

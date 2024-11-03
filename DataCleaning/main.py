@@ -49,10 +49,14 @@ print("Columns datatypes:\n", df.dtypes)
 # Sending the cleaned data to the database
 db.insert_collection('house_prices_data_processed', df)
 
+# Normalizing numerical values
 numerical_cols = ['price', 'bedrooms', 'bathrooms', 'sqft_living', 'floors', 'sqft_lot', 'sqft_above', 'yr_built', 'sqft_basement', 'yr_renovated']
 df = normalize_numerical_data_z_score(df, numerical_cols)
+
+# Standardizing categorical values
 df, label_encoders = standardize_categorical_data(df, ['city', 'statezip'])
 
+# Updating the collection with standardized data
 db.reset_collection_and_insert('house_prices_data_processed', df)
 
 print(df)
