@@ -49,11 +49,13 @@ print("Columns datatypes:\n", df.dtypes)
 # Sending the cleaned data to the database
 db.insert_collection('house_prices_data_processed', df)
 
-# Normalizing numerical values
+# Normalizing numerical columns for consistency in scale, which can help improve model performance.
+# Using z-score normalization to standardize these features around a mean of 0 and a standard deviation of 1.
 numerical_cols = ['price', 'bedrooms', 'bathrooms', 'sqft_living', 'floors', 'sqft_lot', 'sqft_above', 'yr_built', 'sqft_basement', 'yr_renovated']
 df = normalize_numerical_data_z_score(df, numerical_cols)
 
-# Standardizing categorical values
+# Standardizing 'city' and 'statezip' as they have relatively few unique values,
+# making them manageable for encoding and improving model compatibility.
 df, label_encoders = standardize_categorical_data(df, ['city', 'statezip'])
 
 # Updating the collection with standardized data
